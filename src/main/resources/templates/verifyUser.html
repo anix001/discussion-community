@@ -1,0 +1,28 @@
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Verify User</title>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&display=swap');
+
+    body{
+      font-family: 'Titillium Web', sans-serif;
+    }
+</style>
+<body style="height:100vh; width:100%; display:grid; place-items:center; text-align:center;">
+<div>
+    <p style="font-size:40px;" th:text="'Hello ' + ${user}"/>
+    <p style="font-size:30px;"><b>Your account is verified.</b></p>
+    <p style="font-size:20px;">Set password for your Account.</p>
+    <button style="background:#0595C0; padding:15px 20px; outline:none; border-radius:10px;  border:1px solid #fff;">
+        <a style="color:#fff; font-size:18px; font-weight:500; text-decoration:none;" th:href="@{'http://localhost:3000/auth/password?user='+${user}}">
+            Set Password
+        </a>
+    </button>
+</div>
+</body>
+</html>
