@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
     private Date getOtpExpireTime(){
         Calendar date = Calendar.getInstance();
         long timeInSecs = date.getTimeInMillis();
-        return new Date(timeInSecs + (15*60 * 1000));
+        return new Date(timeInSecs + (15 * 60 * 1000));
     }
 
     @Override
@@ -93,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void regenerateOtp(String email, String type) {
         User user = userRepository.findByEmail(email).orElseThrow(()-> new NotFoundException("User not Found."));
-        List<Otp> oldOtpList = otpRepository.findAll();
+        List<Otp> oldOtpList = otpRepository.fetchAllByUserId(user.getId());
         Date otpExpireTime = getOtpExpireTime();
         String newOtp = stringGenerator.RandomOtpGenerator();
         Otp accountVerifyOtp = new Otp(passwordEncoder.encode(newOtp), otpExpireTime,OtpType.VERIFY_USER, OtpStatus.ACTIVE);;
@@ -113,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(()-> new NotFoundException("User not Found."));
-        List<Otp> oldOtpList = otpRepository.findAll();
+        List<Otp> oldOtpList = otpRepository.fetchAllByUserId(user.getId());
         Date otpExpireTime = getOtpExpireTime();
         String newOtp = stringGenerator.RandomOtpGenerator();
         Otp accountVerifyOtp = new Otp(passwordEncoder.encode(newOtp), otpExpireTime,OtpType.FORGOT_PASSWORD, OtpStatus.ACTIVE);;

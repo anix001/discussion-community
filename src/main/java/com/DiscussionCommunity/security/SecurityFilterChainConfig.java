@@ -3,6 +3,7 @@ package com.DiscussionCommunity.security;
 import com.DiscussionCommunity.filter.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,6 +29,8 @@ public class SecurityFilterChainConfig {
                 .disable()
                 .authorizeHttpRequests()
                 .antMatchers("/auth/**")
+                .permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/posts/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

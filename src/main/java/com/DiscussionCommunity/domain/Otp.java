@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,6 +32,10 @@ public class Otp extends Auditable{
 
     @Enumerated(EnumType.STRING)
     private OtpStatus otpStatus;
+
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
 
     public Otp(String otp, Date expiresAt, OtpType otpType, OtpStatus otpStatus) {
         this.otp = otp;
