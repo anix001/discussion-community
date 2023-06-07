@@ -1,10 +1,7 @@
 package com.DiscussionCommunity.exception;
 
 import com.DiscussionCommunity.domain.dto.ExceptionResponse;
-import com.DiscussionCommunity.exception.custom.InternalServerException;
-import com.DiscussionCommunity.exception.custom.NotAcceptableException;
-import com.DiscussionCommunity.exception.custom.NotFoundException;
-import com.DiscussionCommunity.exception.custom.UnauthorizedException;
+import com.DiscussionCommunity.exception.custom.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -44,4 +41,12 @@ public class GlobalExceptionHandler {
         ExceptionResponse response = new ExceptionResponse(false, request.getMethod(), request.getRequestURI(), unauthorized, e.getMessage(), ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(response, unauthorized);
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ExceptionResponse> handleBadRequestException(BadRequestException e, HttpServletRequest request){
+        HttpStatus badRequest = HttpStatus.BAD_REQUEST;
+        ExceptionResponse response = new ExceptionResponse(false, request.getMethod(), request.getRequestURI(), badRequest, e.getMessage(), ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(response, badRequest);
+    }
+
 }
