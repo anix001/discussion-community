@@ -1,6 +1,7 @@
 package com.DiscussionCommunity.domain;
 
 import com.DiscussionCommunity.domain.dto.CommentDto;
+import com.DiscussionCommunity.domain.enumeration.VoteStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,11 @@ public class Post extends Auditable {
     private MultipartFile image;
     @Column(name = "file_path")
     private String filePath;
+    @Column(name="post_vote")
+    private Long postVote = 0L;
+//    @Transient
+//    @Enumerated(EnumType.STRING)
+//    private VoteStatus userVoteStatus;
     @Transient
     private List<CommentDto> postComments = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL)

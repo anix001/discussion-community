@@ -6,21 +6,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Id;
-import java.util.List;
+import javax.persistence.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class PostDto {
+public class PostVoteDto {
     @Id
     private Long id;
-    private String title;
-    private String description;
-    private String filePath;
-    private Long postVote;
-//    private VoteStatus userVoteStatus;
-    private List<CommentDto> postComments;
+    private VoteStatus voteStatus;
     private String createdBy;
 }

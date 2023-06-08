@@ -21,4 +21,7 @@ public interface PostService {
     void replyComment(Long commentId, List<Reply> reply);
     void updateReply(Long replyId, Reply reply);
     void deleteReply(Long replyId);
+    void postVote(Long postId, String upVote, String downVote);
+    void postVoteUpdate(Long postId, String upVote, String downVote);
+    Boolean isUserAlreadyVotedPost(Long postId);
 }
