@@ -1,30 +1,25 @@
 package com.DiscussionCommunity.service.impl;
 
-import com.DiscussionCommunity.domain.Comment;
-import com.DiscussionCommunity.domain.Post;
-import com.DiscussionCommunity.domain.Reply;
-import com.DiscussionCommunity.domain.User;
+import com.DiscussionCommunity.domain.*;
 import com.DiscussionCommunity.domain.dto.PostDto;
 import com.DiscussionCommunity.domain.enumeration.Role;
+import com.DiscussionCommunity.domain.enumeration.VoteStatus;
 import com.DiscussionCommunity.exception.custom.BadRequestException;
 import com.DiscussionCommunity.exception.custom.InternalServerException;
 import com.DiscussionCommunity.exception.custom.NotFoundException;
 import com.DiscussionCommunity.exception.custom.UnauthorizedException;
-import com.DiscussionCommunity.repository.CommentRepository;
-import com.DiscussionCommunity.repository.PostRepository;
-import com.DiscussionCommunity.repository.ReplyRepository;
-import com.DiscussionCommunity.repository.UserRepository;
+import com.DiscussionCommunity.repository.*;
 import com.DiscussionCommunity.service.PostService;
 import com.DiscussionCommunity.service.UserService;
-import com.DiscussionCommunity.service.mapper.custom.CommentMapper;
-import com.DiscussionCommunity.service.mapper.custom.PostMapper;
-import com.DiscussionCommunity.service.mapper.custom.ReplyMapper;
+import com.DiscussionCommunity.service.mapper.custom.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -37,8 +32,11 @@ public class PostServiceImpl implements PostService {
     private final CommentMapper commentMapper;
     private final ReplyMapper replyMapper;
     private final ReplyRepository replyRepository;
+    private final PostVoteRepository postVoteRepository;
+    private final CommunityRepository communityRepository;
+    private final CommunityNameMapper communityNameMapper;
 
-    public PostServiceImpl(PostRepository postRepository, PostMapper postMapper, UserService userService, UserRepository userRepository, CommentRepository commentRepository, CommentMapper commentMapper, ReplyMapper replyMapper, ReplyRepository replyRepository) {
+    public PostServiceImpl(PostRepository postRepository, PostMapper postMapper, UserService userService, UserRepository userRepository, CommentRepository commentRepository, CommentMapper commentMapper, ReplyMapper replyMapper, ReplyRepository replyRepository, PostVoteRepository postVoteRepository, CommunityRepository communityRepository, CommunityNameMapper communityNameMapper) {
         this.postRepository = postRepository;
         this.postMapper = postMapper;
         this.userService = userService;
@@ -47,12 +45,15 @@ public class PostServiceImpl implements PostService {
         this.commentMapper = commentMapper;
         this.replyMapper = replyMapper;
         this.replyRepository = replyRepository;
+        this.postVoteRepository = postVoteRepository;
+        this.communityRepository = communityRepository;
+        this.communityNameMapper = communityNameMapper;
     }
 
     private final String UPLOAD_FOLDER_PATH = "/home/anix/Documents/DiscussionCommunity/upload/";
 
     @Override
-    public void store(Post post) {
+    public void store(Post post, Long communityId) {
         User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
 
         if (post.getTitle() == null || post.getDescription() == null) {
@@ -69,6 +70,10 @@ public class PostServiceImpl implements PostService {
         }}else{
             post.setFilePath(null);
         }
+        if(communityId !=null){
+            Community community = communityRepository.findById(communityId).orElse(null);
+            post.setCommunity(community);
+        }
         post.setUser(user);
         postRepository.save(post);
 
@@ -83,6 +88,7 @@ public class PostServiceImpl implements PostService {
               comment.setReplyList(replyMapper.toDtoList(comment.getReplies()));
           }
           post.setPostComments(commentMapper.toDtoList(comments));
+          post.setCommunityName(communityNameMapper.toDto(post.getCommunity()));
       }
       return postMapper.toDtoList(posts);
     }
@@ -95,6 +101,12 @@ public class PostServiceImpl implements PostService {
             comment.setReplyList(replyMapper.toDtoList(comment.getReplies()));
         }
         post.setPostComments(commentMapper.toDtoList(comments));
+        post.setCommunityName(communityNameMapper.toDto(post.getCommunity()));
+        if(SecurityContextHolder.getContext().getAuthentication() != null){
+            User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
+            Optional<PostVote> postVote = postVoteRepository.isUserAlreadyVotedPost(user.getId(), post.getId());
+            postVote.ifPresent(vote -> post.setUserVoteStatus(vote.getVoteStatus()));
+        }
         return postMapper.toDto(post);
     }
 
@@ -224,6 +236,78 @@ public class PostServiceImpl implements PostService {
         }else {
             throw new UnauthorizedException("Not authorized");
         }
+    }
+
+
+    //votting post
+    @Override
+    public void postVote(Long postId, String upVote, String downVote) {
+      Post dbPost = postRepository.findById(postId).orElseThrow(() -> new NotFoundException("Post not found"));
+      User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
+      if(upVote!= null){
+          dbPost.setPostVote(dbPost.getPostVote()+1);
+          PostVote postUpVote = new PostVote(VoteStatus.UP);
+          postUpVote.setUser(user);
+          postUpVote.setPost(dbPost);
+          postVoteRepository.save(postUpVote);
+      } else if (downVote != null) {
+          dbPost.setPostVote(dbPost.getPostVote()-1);
+          PostVote postDownVote = new PostVote(VoteStatus.DOWN);
+          postDownVote.setUser(user);
+          postDownVote.setPost(dbPost);
+          postVoteRepository.save(postDownVote);
+      }
+      postRepository.save(dbPost);
+    }
+
+    @Override
+    public void postVoteUpdate(Long postId, String upVote, String downVote) {
+        Post dbPost = postRepository.findById(postId).orElseThrow(() -> new NotFoundException("Post not found"));
+        User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
+        PostVote userVote  = postVoteRepository.fetchByUserIdAndPostId(user.getId(), dbPost.getId());
+        if(upVote !=null){
+            if(userVote.getVoteStatus() == VoteStatus.DOWN){
+                dbPost.setPostVote(dbPost.getPostVote() + 2);
+                userVote.setVoteStatus(VoteStatus.UP);
+            } else if (userVote.getVoteStatus() == VoteStatus.UP) {
+                dbPost.setPostVote(dbPost.getPostVote() -1);
+                userVote.setVoteStatus(VoteStatus.NEUTRAL);
+            }
+        } else if (downVote !=null) {
+            if (userVote.getVoteStatus() == VoteStatus.DOWN){
+                dbPost.setPostVote(dbPost.getPostVote() + 1);
+                userVote.setVoteStatus(VoteStatus.NEUTRAL);
+            }else if(userVote.getVoteStatus() == VoteStatus.UP){
+                dbPost.setPostVote(dbPost.getPostVote() - 2);
+                userVote.setVoteStatus(VoteStatus.DOWN);
+            }
+        }
+        postVoteRepository.save(userVote);
+        postRepository.save(dbPost);
+    }
+
+    @Override
+    public Boolean isUserAlreadyVotedPost(Long postId) {
+        Post dbPost = postRepository.findById(postId).orElseThrow(() -> new NotFoundException("Post not found"));
+        User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
+        Optional<PostVote> dbUserVote = postVoteRepository.isUserAlreadyVotedPost(user.getId(), dbPost.getId());
+        return dbUserVote.isPresent();
+    }
+
+    @Override
+    public List<PostDto> postsByCommunity(Long communityId) {
+        Community community = communityRepository.findById(communityId).orElseThrow(()->new NotFoundException("Community not found"));
+        List<Post> posts = postRepository.findPostsByCommunityId(community.getId());
+
+        for(Post post : posts){
+            List<Comment> comments = post.getComments();
+            for(Comment comment: comments){
+                comment.setReplyList(replyMapper.toDtoList(comment.getReplies()));
+            }
+            post.setPostComments(commentMapper.toDtoList(comments));
+            post.setCommunityName(communityNameMapper.toDto(post.getCommunity()));
+        }
+        return postMapper.toDtoList(posts);
     }
 
 

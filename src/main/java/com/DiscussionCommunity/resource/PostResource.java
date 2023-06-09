@@ -24,8 +24,8 @@ public class PostResource {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> store(Post post)  {
-        postService.store(post);
+    public ResponseEntity<ApiResponse> store(Post post, @RequestParam(value = "communityId", required = false) Long communityId)  {
+        postService.store(post, communityId);
         ApiResponse response = new ApiResponse(true,HttpStatus.CREATED,"Post is successfully created.", new ArrayList<>());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -33,6 +33,12 @@ public class PostResource {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDto>>> index()  {
         ApiResponse response = new ApiResponse(true,HttpStatus.OK,"Posts fetched successfully.", postService.index());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/community/{communityId}")
+    public ResponseEntity<ApiResponse<List<PostDto>>> indexByCommunity(@PathVariable Long communityId)  {
+        ApiResponse response = new ApiResponse(true,HttpStatus.OK,"Posts fetched successfully.", postService.postsByCommunity(communityId));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -108,6 +114,28 @@ public class PostResource {
     public ResponseEntity<ApiResponse> deleteReply(@RequestParam Long replyId){
         postService.deleteReply(replyId);
         ApiResponse response = new ApiResponse(true,HttpStatus.OK,"Reply deleted", new ArrayList<>());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+    //post Vote
+    @PostMapping("/{postId}/vote")
+    public ResponseEntity<ApiResponse> postVote(@PathVariable Long postId, @RequestParam(value = "upVote", required = false) String upVote, @RequestParam(value = "downVote", required = false) String downVote){
+        postService.postVote(postId, upVote, downVote);
+        ApiResponse response = new ApiResponse<>(true, HttpStatus.OK, "Post Voted",new ArrayList<>());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/{postId}/vote")
+    public ResponseEntity<ApiResponse> updatePostVote(@PathVariable Long postId, @RequestParam(value = "upVote", required = false) String upVote, @RequestParam(value = "downVote", required = false) String downVote){
+        postService.postVoteUpdate(postId, upVote, downVote);
+        ApiResponse response = new ApiResponse<>(true, HttpStatus.OK, "Post Vote updated",new ArrayList<>());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/{postId}/vote-check")
+    public ResponseEntity<ApiResponse<Boolean>> userVoteCheck(@PathVariable Long postId){
+        ApiResponse response = new ApiResponse<>(true, HttpStatus.OK, "",postService.isUserAlreadyVotedPost(postId));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -1,6 +1,9 @@
 package com.DiscussionCommunity.domain;
 
 import com.DiscussionCommunity.domain.dto.CommentDto;
+import com.DiscussionCommunity.domain.dto.CommunityDto;
+import com.DiscussionCommunity.domain.dto.CommunityNameDto;
+import com.DiscussionCommunity.domain.enumeration.VoteStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +30,11 @@ public class Post extends Auditable {
     private MultipartFile image;
     @Column(name = "file_path")
     private String filePath;
+    @Column(name="post_vote")
+    private Long postVote = 0L;
+    @Transient
+    @Enumerated(EnumType.STRING)
+    private VoteStatus userVoteStatus;
     @Transient
     private List<CommentDto> postComments = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL)
@@ -35,4 +43,9 @@ public class Post extends Auditable {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "community_id")
+    private Community community;
+    @Transient
+    private CommunityNameDto communityName;
 }

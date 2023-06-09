@@ -2,7 +2,11 @@ package com.DiscussionCommunity.domain;
 
 import com.DiscussionCommunity.domain.enumeration.Role;
 import com.DiscussionCommunity.domain.enumeration.UserStatus;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,6 +48,9 @@ public class User extends Auditable implements UserDetails {
     @JoinColumn(name="user_id", referencedColumnName = "id")
     private List<Otp> otp = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "userList", fetch = FetchType.LAZY)
+//    @JsonIgnore
+    private List<Community> communityList;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface PostService {
-    void store(Post post);
+    void store(Post post, Long communityId);
     List<PostDto> index();
     PostDto get(Long postId);
     byte[] download(Long postId);
@@ -21,4 +21,8 @@ public interface PostService {
     void replyComment(Long commentId, List<Reply> reply);
     void updateReply(Long replyId, Reply reply);
     void deleteReply(Long replyId);
+    void postVote(Long postId, String upVote, String downVote);
+    void postVoteUpdate(Long postId, String upVote, String downVote);
+    Boolean isUserAlreadyVotedPost(Long postId);
+    List<PostDto> postsByCommunity(Long communityId);
 }
