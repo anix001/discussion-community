@@ -20,7 +20,8 @@ public class PostDto {
     private String description;
     private String filePath;
     private Long postVote;
-//    private VoteStatus userVoteStatus;
+    private VoteStatus userVoteStatus;
     private List<CommentDto> postComments;
+    private CommunityNameDto communityName;
     private String createdBy;
 }

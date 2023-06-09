@@ -24,8 +24,8 @@ public class PostResource {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> store(Post post)  {
-        postService.store(post);
+    public ResponseEntity<ApiResponse> store(Post post, @RequestParam(value = "communityId", required = false) Long communityId)  {
+        postService.store(post, communityId);
         ApiResponse response = new ApiResponse(true,HttpStatus.CREATED,"Post is successfully created.", new ArrayList<>());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -33,6 +33,12 @@ public class PostResource {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDto>>> index()  {
         ApiResponse response = new ApiResponse(true,HttpStatus.OK,"Posts fetched successfully.", postService.index());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/community/{communityId}")
+    public ResponseEntity<ApiResponse<List<PostDto>>> indexByCommunity(@PathVariable Long communityId)  {
+        ApiResponse response = new ApiResponse(true,HttpStatus.OK,"Posts fetched successfully.", postService.postsByCommunity(communityId));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
