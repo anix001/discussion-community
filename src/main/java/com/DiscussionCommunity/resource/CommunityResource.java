@@ -59,4 +59,11 @@ public class CommunityResource {
         ApiResponse response = new ApiResponse(true, HttpStatus.OK, "Community Joined", new ArrayList<>());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/{communityId}/leave")
+    public ResponseEntity<ApiResponse>  leave(@PathVariable Long communityId){
+         communityService.leave(communityId);
+        ApiResponse response = new ApiResponse(true, HttpStatus.OK, "Community left", new ArrayList<>());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

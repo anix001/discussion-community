@@ -45,11 +45,13 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
-    public Void leave(Long communityId) {
+    public void leave(Long communityId) {
         Community community = communityRepository.findById(communityId).orElseThrow(()->new NotFoundException("Community not found"));
         User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
-
-        return null;
+        List<User> userByCommunityId = userRepository.findUserByCommunityId(community.getId());
+        userByCommunityId.remove(user);
+        community.setUserList(userByCommunityId);
+        communityRepository.save(community);
     }
 
     @Override
