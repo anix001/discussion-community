@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface CommunityService {
     void join(Long communityId);
-    Void leave(Long communityId);
+    void leave(Long communityId);
     void store(Community community);
     CommunityDto get(Long communityId);
     List<CommunityDto> index();
