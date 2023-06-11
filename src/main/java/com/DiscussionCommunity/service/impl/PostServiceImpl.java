@@ -89,6 +89,11 @@ public class PostServiceImpl implements PostService {
           }
           post.setPostComments(commentMapper.toDtoList(comments));
           post.setCommunityName(communityNameMapper.toDto(post.getCommunity()));
+          if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() != "anonymousUser"){
+              User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
+              Optional<PostVote> postVote = postVoteRepository.isUserAlreadyVotedPost(user.getId(), post.getId());
+              postVote.ifPresent(vote -> post.setUserVoteStatus(vote.getVoteStatus()));
+          }
       }
       return postMapper.toDtoList(posts);
     }
@@ -102,7 +107,7 @@ public class PostServiceImpl implements PostService {
         }
         post.setPostComments(commentMapper.toDtoList(comments));
         post.setCommunityName(communityNameMapper.toDto(post.getCommunity()));
-        if(SecurityContextHolder.getContext().getAuthentication() != null){
+        if(SecurityContextHolder.getContext().getAuthentication().getPrincipal() != "anonymousUser"){
             User user = userRepository.findByEmail(userService.getCurrentLoggedInUser().getUsername()).orElseThrow(()->new NotFoundException("User is not authorized"));
             Optional<PostVote> postVote = postVoteRepository.isUserAlreadyVotedPost(user.getId(), post.getId());
             postVote.ifPresent(vote -> post.setUserVoteStatus(vote.getVoteStatus()));
